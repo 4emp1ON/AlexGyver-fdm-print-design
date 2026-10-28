@@ -64,3 +64,23 @@ python <cad-plugin>/skills/dfam-check/scripts/dfam_tool.py measure STL/part.stl 
 ```
 В отчёте DfAM: `flat-down` грани < 30° — реальные свесы; 45° ровно — норма; тонкие «стенки» на краю
 потая/фаски — артефакт лучевого замера.
+
+## Ромб для мелкого неточного горизонтального отверстия
+```python
+def diamond_hole(size, length):
+    """Квадрат под 45° (диагональ = size): ни свесов, ни мостов."""
+    prof = bd.Rot(0, 0, 45) * bd.Rectangle(size / 2**0.5, size / 2**0.5)
+    return bd.extrude(bd.Plane.YZ * prof, length, dir=(1, 0, 0))
+```
+
+## Отверстие-усилитель (заставляет слайсер положить периметры внутри массива)
+```python
+rib_slot = bd.Box(0.1, 20, h)    # щель 0,1 мм: слайсер обойдёт её стенками, физически она не откроется
+part = part - bd.Pos(x, y, h / 2) * rib_slot
+```
+
+## «Мышиные уши» на углах большой плоской детали
+```python
+for x, y in corners:
+    part = part + bd.Pos(x, y, 0) * bd.Cylinder(8, 0.6, align=(bd.Align.CENTER, bd.Align.CENTER, bd.Align.MIN))
+```
